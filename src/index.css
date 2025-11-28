@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Regra para garantir que o app ocupe 100% da tela */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* Remove barras de rolagem nativas */
+  background: transparent; /* Importante para o efeito glass futuro */
+}
