@@ -1,7 +1,22 @@
-# Tauri + React + Typescript
+# Monoto
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Monoto é um aplicativo de notas minimalista focado em captura rápida de ideias, estudos e compromissos, com organização automática baseada em regras simples.
 
-## Recommended IDE Setup
+O projeto está em desenvolvimento e tem como objetivo principal aprendizado prático de arquitetura, React, TypeScript e Tauri.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+---
+
+## Objetivo do projeto
+
+Criar um bloco de notas desktop que permita:
+- Criar notas rapidamente
+- Usar atalhos globais para captura instantânea
+- Organizar notas automaticamente por pastas (ex.: matérias, reuniões)
+- Funcionar offline
+- Ter uma interface simples e minimalista
+
+
+# Ideias 
+
+- colocar markdown 
+- deixar q o user escolha se ele quer usar apenas o markdown e tirar o bubblemenu
