@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import { useNotasStore } from "../stores/useNotasStore";
+import { salvarConteudoNota } from "../banco";
 import estilos from "../estilos/Editor.module.css";
 
 /*
@@ -70,6 +72,10 @@ export default function Editor() {
   const notas = useNotasStore((e) => e.notas);
   const atualizarConteudo = useNotasStore((e) => e.atualizarConteudo);
 
+  // guarda o "timer" do debounce entre uma tecla e outra (useRef não some
+  // a cada render). Debounce = esperar parar de digitar para então salvar.
+  const salvarRef = useRef(null);
+
   // acha a nota que está aberta agora
   const nota = notas.find((n) => n.id === notaAtivaId);
 
@@ -81,10 +87,17 @@ export default function Editor() {
         CharacterCount,
       ],
       content: nota?.conteudo || "",
-      // a cada mudança, salvamos o conteúdo na memória.
-      // (Na Fase 2a colocaremos um "debounce" para salvar com calma.)
       onUpdate: ({ editor }) => {
-        if (notaAtivaId) atualizarConteudo(notaAtivaId, editor.getHTML());
+        if (!notaAtivaId) return;
+        const html = editor.getHTML();
+        // 1) atualiza na memória na hora (título e contador ao vivo)
+        atualizarConteudo(notaAtivaId, html);
+        // 2) salva no banco com debounce: só grava 500ms depois da última
+        //    tecla, evitando gravar a cada caractere digitado
+        if (salvarRef.current) clearTimeout(salvarRef.current);
+        salvarRef.current = setTimeout(() => {
+          salvarConteudoNota(notaAtivaId, html);
+        }, 500);
       },
     },
     [notaAtivaId] // recria o editor quando a nota muda

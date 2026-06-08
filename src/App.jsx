@@ -5,6 +5,8 @@ import CommandPalette from "./componentes/CommandPalette";
 import Configuracoes from "./componentes/Configuracoes";
 import Toasts from "./componentes/Toasts";
 import { useUiStore } from "./stores/useUiStore";
+import { useNotasStore } from "./stores/useNotasStore";
+import { iniciarBanco } from "./banco";
 import estilos from "./estilos/App.module.css";
 
 /*
@@ -17,6 +19,14 @@ export default function App() {
   const tamanhoFonte = useUiStore((e) => e.tamanhoFonte);
   const opacidade = useUiStore((e) => e.opacidade);
   const alternarPalette = useUiStore((e) => e.alternarPalette);
+  const carregar = useNotasStore((e) => e.carregar);
+
+  // no boot: abre o banco, garante tabelas/dados e carrega pastas e notas
+  useEffect(() => {
+    iniciarBanco()
+      .then(({ pastas, notas }) => carregar(pastas, notas))
+      .catch((erro) => console.error("Falha ao iniciar o banco:", erro));
+  }, [carregar]);
 
   // aplica fonte e opacidade nas variáveis CSS sempre que mudarem
   useEffect(() => {
