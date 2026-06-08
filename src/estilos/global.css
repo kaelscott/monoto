@@ -1,0 +1,54 @@
+/*
+  global.css
+  Estilos "base" que valem para a página inteira: um reset simples,
+  a cor de fundo, a fonte e o color-scheme escuro (que deixa os
+  controles nativos — como input de hora e checkbox — escuros também).
+*/
+
+/* reset simples: tira as margens padrão e usa um box-sizing previsível */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* faz os controles nativos (hora, checkbox) virem no tema escuro */
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-fonte);
+  -webkit-font-smoothing: antialiased; /* deixa o texto mais suave */
+}
+
+/* barra de rolagem fininha e discreta */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--borda);
+  border-radius: var(--raio);
+}
+
+/* botões e campos herdam a fonte do app por padrão */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+input,
+textarea,
+select {
+  font-family: inherit;
+}
