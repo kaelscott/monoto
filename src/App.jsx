@@ -19,14 +19,18 @@ export default function App() {
   const tamanhoFonte = useUiStore((e) => e.tamanhoFonte);
   const opacidade = useUiStore((e) => e.opacidade);
   const alternarPalette = useUiStore((e) => e.alternarPalette);
+  const adicionarToast = useUiStore((e) => e.adicionarToast);
   const carregar = useNotasStore((e) => e.carregar);
 
   // no boot: abre o banco, garante tabelas/dados e carrega pastas e notas
   useEffect(() => {
     iniciarBanco()
       .then(({ pastas, notas }) => carregar(pastas, notas))
-      .catch((erro) => console.error("Falha ao iniciar o banco:", erro));
-  }, [carregar]);
+      .catch((erro) => {
+        console.error("Falha ao iniciar o banco:", erro);
+        adicionarToast("Erro ao abrir o banco: " + String(erro));
+      });
+  }, [carregar, adicionarToast]);
 
   // aplica fonte e opacidade nas variáveis CSS sempre que mudarem
   useEffect(() => {

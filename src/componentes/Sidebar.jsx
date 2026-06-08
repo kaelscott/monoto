@@ -135,9 +135,14 @@ export default function Sidebar() {
   const adicionarToast = useUiStore((e) => e.adicionarToast);
   const criarNota = useNotasStore((e) => e.criarNota);
 
-  function novaNota() {
-    criarNota();
-    adicionarToast("Nota criada");
+  async function novaNota() {
+    try {
+      await criarNota();
+      adicionarToast("Nota criada");
+    } catch (erro) {
+      console.error("Falha ao criar nota:", erro);
+      adicionarToast("Erro ao criar nota: " + String(erro));
+    }
   }
 
   return (

@@ -26,9 +26,14 @@ export default function CommandPalette() {
       {
         id: "nova",
         rotulo: "Nova nota",
-        fazer: () => {
-          criarNota();
-          adicionarToast("Nota criada");
+        fazer: async () => {
+          try {
+            await criarNota();
+            adicionarToast("Nota criada");
+          } catch (erro) {
+            console.error("Falha ao criar nota:", erro);
+            adicionarToast("Erro ao criar nota: " + String(erro));
+          }
         },
       },
       { id: "config", rotulo: "Abrir configurações", fazer: abrirConfig },

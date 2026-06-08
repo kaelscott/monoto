@@ -72,10 +72,12 @@ async function semearSeVazio() {
 }
 
 // Abre o banco, garante as tabelas e os dados iniciais, e já devolve
-// pastas e notas prontas para a tela. ("sqlite:monoto.db" faz o Tauri
+// pastas e notas prontas para a tela. ("sqlite:monoto-app.db" faz o Tauri
 // resolver o caminho na pasta de dados do app — nunca um caminho fixo.)
+// Obs.: usamos um nome novo ("monoto-app.db") para não colidir com um banco
+// antigo de uma versão anterior do app que ficou na pasta de dados.
 export async function iniciarBanco() {
-  db = await Database.load("sqlite:monoto.db");
+  db = await Database.load("sqlite:monoto-app.db");
   await criarTabelas();
   await semearSeVazio();
   return {
