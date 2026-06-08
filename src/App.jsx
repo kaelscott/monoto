@@ -7,6 +7,7 @@ import Toasts from "./componentes/Toasts";
 import { useUiStore } from "./stores/useUiStore";
 import { useNotasStore } from "./stores/useNotasStore";
 import { iniciarBanco } from "./banco";
+import { iniciarConfigs } from "./configs";
 import estilos from "./estilos/App.module.css";
 
 /*
@@ -20,6 +21,8 @@ export default function App() {
   const opacidade = useUiStore((e) => e.opacidade);
   const alternarPalette = useUiStore((e) => e.alternarPalette);
   const adicionarToast = useUiStore((e) => e.adicionarToast);
+  const definirTamanhoFonte = useUiStore((e) => e.definirTamanhoFonte);
+  const definirOpacidade = useUiStore((e) => e.definirOpacidade);
   const carregar = useNotasStore((e) => e.carregar);
 
   // no boot: abre o banco, garante tabelas/dados e carrega pastas e notas
@@ -31,6 +34,16 @@ export default function App() {
         adicionarToast("Erro ao abrir o banco: " + String(erro));
       });
   }, [carregar, adicionarToast]);
+
+  // no boot: carrega as configurações salvas (fonte/opacidade) e aplica
+  useEffect(() => {
+    iniciarConfigs()
+      .then(({ tamanhoFonte, opacidade }) => {
+        definirTamanhoFonte(tamanhoFonte);
+        definirOpacidade(opacidade);
+      })
+      .catch((erro) => console.error("Falha ao carregar configurações:", erro));
+  }, [definirTamanhoFonte, definirOpacidade]);
 
   // aplica fonte e opacidade nas variáveis CSS sempre que mudarem
   useEffect(() => {

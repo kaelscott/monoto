@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { salvarConfig } from "../configs";
 
 /*
   useUiStore.js
@@ -32,10 +33,17 @@ export const useUiStore = create((set) => ({
   fecharConfig: () => set({ configAberta: false }),
 
   // --- aparência (o App.jsx aplica esses valores nas variáveis CSS) ---
+  // ao mudar, atualizamos a tela (set) e salvamos no settings.json (salvarConfig)
   tamanhoFonte: 14, // em pixels
   opacidade: 0.92, // de 0 a 1
-  definirTamanhoFonte: (px) => set({ tamanhoFonte: px }),
-  definirOpacidade: (valor) => set({ opacidade: valor }),
+  definirTamanhoFonte: (px) => {
+    set({ tamanhoFonte: px });
+    salvarConfig("tamanhoFonte", px);
+  },
+  definirOpacidade: (valor) => {
+    set({ opacidade: valor });
+    salvarConfig("opacidade", valor);
+  },
 
   // --- "iniciar com o sistema" (só visual na Fase 1; vira real na Fase 2d) ---
   iniciarComSistema: false,

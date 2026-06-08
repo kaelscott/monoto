@@ -10,6 +10,9 @@ pub fn run() {
         // Tudo (criar tabelas, ler, gravar) é feito pelo JavaScript;
         // aqui apenas registramos o plugin para o front poder usá-lo.
         .plugin(tauri_plugin_sql::Builder::new().build())
+        // plugin de armazenamento de configurações (Fase 2b).
+        // Guarda settings.json; também é todo controlado pelo JavaScript.
+        .plugin(tauri_plugin_store::Builder::new().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
