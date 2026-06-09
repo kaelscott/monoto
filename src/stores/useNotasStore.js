@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { inserirPasta, inserirNota } from "../banco";
+import { escolherPasta } from "../regrasHorario";
+import { useRegrasStore } from "./useRegrasStore";
 
 /*
   useNotasStore.js
@@ -33,11 +35,17 @@ export const useNotasStore = create((set) => ({
     set((estado) => ({ pastas: [...estado.pastas, { id, nome }] }));
   },
 
-  // cria nota vazia na pasta selecionada (ou na 1ª pasta) e a deixa aberta.
-  // getState() lê o estado atual do store dentro de uma função assíncrona.
+  // cria nota vazia e a deixa aberta. A pasta é escolhida assim:
+  //   1) se alguma regra de horário bate com agora, usa a pasta dela;
+  //   2) senão, usa a pasta selecionada (ou a 1ª pasta).
   criarNota: async () => {
     const estado = useNotasStore.getState();
-    const pastaId = estado.pastaSelecionadaId ?? estado.pastas[0]?.id ?? null;
+    const regras = useRegrasStore.getState().regras;
+
+    const pastaPorHorario = escolherPasta(regras, estado.pastas, new Date());
+    const pastaId =
+      pastaPorHorario ?? estado.pastaSelecionadaId ?? estado.pastas[0]?.id ?? null;
+
     const id = await inserirNota(pastaId, "");
     set((s) => ({
       notas: [{ id, pastaId, conteudo: "" }, ...s.notas],

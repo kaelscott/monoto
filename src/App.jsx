@@ -6,6 +6,7 @@ import Configuracoes from "./componentes/Configuracoes";
 import Toasts from "./componentes/Toasts";
 import { useUiStore } from "./stores/useUiStore";
 import { useNotasStore } from "./stores/useNotasStore";
+import { useRegrasStore } from "./stores/useRegrasStore";
 import { iniciarBanco } from "./banco";
 import { iniciarConfigs } from "./configs";
 import { registrarAtalhoGlobal, autostartLigado } from "./sistema";
@@ -26,16 +27,20 @@ export default function App() {
   const definirOpacidade = useUiStore((e) => e.definirOpacidade);
   const definirIniciarComSistema = useUiStore((e) => e.definirIniciarComSistema);
   const carregar = useNotasStore((e) => e.carregar);
+  const carregarRegras = useRegrasStore((e) => e.carregarRegras);
 
-  // no boot: abre o banco, garante tabelas/dados e carrega pastas e notas
+  // no boot: abre o banco, garante tabelas/dados e carrega pastas, notas e regras
   useEffect(() => {
     iniciarBanco()
-      .then(({ pastas, notas }) => carregar(pastas, notas))
+      .then(({ pastas, notas, regras }) => {
+        carregar(pastas, notas);
+        carregarRegras(regras);
+      })
       .catch((erro) => {
         console.error("Falha ao iniciar o banco:", erro);
         adicionarToast("Erro ao abrir o banco: " + String(erro));
       });
-  }, [carregar, adicionarToast]);
+  }, [carregar, carregarRegras, adicionarToast]);
 
   // no boot: carrega as configurações salvas (fonte/opacidade) e aplica
   useEffect(() => {

@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import { pastasExemplo, notasExemplo } from "./exemplos";
+import { pastasExemplo, notasExemplo, regrasExemplo } from "./exemplos";
 
 /*
   banco.js
@@ -69,6 +69,11 @@ async function semearSeVazio() {
       nota.conteudo,
     ]);
   }
+
+  // insere as regras de horário de exemplo
+  for (const regra of regrasExemplo) {
+    await inserirRegra(regra);
+  }
 }
 
 // Abre o banco, garante as tabelas e os dados iniciais, e já devolve
@@ -83,6 +88,7 @@ export async function iniciarBanco() {
   return {
     pastas: await listarPastas(),
     notas: await listarNotas(),
+    regras: await listarRegras(),
   };
 }
 
@@ -113,4 +119,49 @@ export async function inserirNota(pastaId, conteudo) {
 // salva o texto de uma nota que já existe
 export async function salvarConteudoNota(id, conteudo) {
   await db.execute("UPDATE notas SET conteudo = $1 WHERE id = $2", [conteudo, id]);
+}
+
+// --- regras de horário (time_rules) ---
+
+// lê as regras e converte os campos guardados como texto/número:
+// 'dias' vira lista (estava "seg,ter") e 'ativa' vira true/false (estava 1/0)
+export async function listarRegras() {
+  const linhas = await db.select(
+    "SELECT id, nome, pasta, dias, inicio, fim, ativa FROM time_rules ORDER BY id"
+  );
+  return linhas.map((r) => ({
+    ...r,
+    dias: r.dias ? r.dias.split(",") : [],
+    ativa: r.ativa === 1,
+  }));
+}
+
+// insere uma regra e devolve o id gerado.
+// 'dias' é gravado como texto "seg,ter" e 'ativa' como 1/0.
+export async function inserirRegra(regra) {
+  const r = await db.execute(
+    "INSERT INTO time_rules (nome, pasta, dias, inicio, fim, ativa) VALUES ($1, $2, $3, $4, $5, $6)",
+    [
+      regra.nome,
+      regra.pasta,
+      regra.dias.join(","),
+      regra.inicio,
+      regra.fim,
+      regra.ativa ? 1 : 0,
+    ]
+  );
+  return r.lastInsertId;
+}
+
+// liga/desliga uma regra
+export async function atualizarRegraAtiva(id, ativa) {
+  await db.execute("UPDATE time_rules SET ativa = $1 WHERE id = $2", [
+    ativa ? 1 : 0,
+    id,
+  ]);
+}
+
+// remove uma regra
+export async function removerRegraDB(id) {
+  await db.execute("DELETE FROM time_rules WHERE id = $1", [id]);
 }

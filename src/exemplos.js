@@ -33,3 +33,16 @@ export const notasExemplo = [
     conteudo: "<p>Lista de compras: café, pão, frutas.</p>",
   },
 ];
+
+// Uma REGRA de horário de exemplo (auto-pasta). Manda notas criadas em dias
+// úteis, entre 09:00 e 12:00, para a pasta "trabalho".
+export const regrasExemplo = [
+  {
+    nome: "Manhã de trabalho",
+    pasta: "trabalho",
+    dias: ["seg", "ter", "qua", "qui", "sex"],
+    inicio: "09:00",
+    fim: "12:00",
+    ativa: true,
+  },
+];
