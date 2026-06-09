@@ -45,10 +45,11 @@ export const useUiStore = create((set) => ({
     salvarConfig("opacidade", valor);
   },
 
-  // --- "iniciar com o sistema" (só visual na Fase 1; vira real na Fase 2d) ---
+  // --- "iniciar com o sistema" (autostart) ---
+  // aqui guardamos só o valor para a tela; ligar/desligar de verdade no SO
+  // é feito no componente de Configurações (via sistema.js).
   iniciarComSistema: false,
-  alternarIniciarComSistema: () =>
-    set((estado) => ({ iniciarComSistema: !estado.iniciarComSistema })),
+  definirIniciarComSistema: (valor) => set({ iniciarComSistema: valor }),
 
   // --- toasts (avisos rápidos no canto da tela) ---
   toasts: [],

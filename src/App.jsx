@@ -8,6 +8,7 @@ import { useUiStore } from "./stores/useUiStore";
 import { useNotasStore } from "./stores/useNotasStore";
 import { iniciarBanco } from "./banco";
 import { iniciarConfigs } from "./configs";
+import { registrarAtalhoGlobal, autostartLigado } from "./sistema";
 import estilos from "./estilos/App.module.css";
 
 /*
@@ -23,6 +24,7 @@ export default function App() {
   const adicionarToast = useUiStore((e) => e.adicionarToast);
   const definirTamanhoFonte = useUiStore((e) => e.definirTamanhoFonte);
   const definirOpacidade = useUiStore((e) => e.definirOpacidade);
+  const definirIniciarComSistema = useUiStore((e) => e.definirIniciarComSistema);
   const carregar = useNotasStore((e) => e.carregar);
 
   // no boot: abre o banco, garante tabelas/dados e carrega pastas e notas
@@ -44,6 +46,12 @@ export default function App() {
       })
       .catch((erro) => console.error("Falha ao carregar configurações:", erro));
   }, [definirTamanhoFonte, definirOpacidade]);
+
+  // no boot: registra o atalho global e reflete o estado real do autostart
+  useEffect(() => {
+    registrarAtalhoGlobal();
+    autostartLigado().then(definirIniciarComSistema);
+  }, [definirIniciarComSistema]);
 
   // aplica fonte e opacidade nas variáveis CSS sempre que mudarem
   useEffect(() => {

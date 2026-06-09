@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useUiStore } from "../stores/useUiStore";
+import { definirAutostart } from "../sistema";
 import RegrasHorario from "./RegrasHorario";
 import estilos from "../estilos/Configuracoes.module.css";
 
@@ -17,7 +18,7 @@ export default function Configuracoes() {
   const opacidade = useUiStore((e) => e.opacidade);
   const definirOpacidade = useUiStore((e) => e.definirOpacidade);
   const iniciarComSistema = useUiStore((e) => e.iniciarComSistema);
-  const alternarIniciarComSistema = useUiStore((e) => e.alternarIniciarComSistema);
+  const definirIniciarComSistema = useUiStore((e) => e.definirIniciarComSistema);
 
   // fecha com a tecla Esc enquanto o modal está aberto
   useEffect(() => {
@@ -71,7 +72,11 @@ export default function Configuracoes() {
             <input
               type="checkbox"
               checked={iniciarComSistema}
-              onChange={alternarIniciarComSistema}
+              onChange={async (e) => {
+                const valor = e.target.checked;
+                definirIniciarComSistema(valor); // atualiza a tela
+                await definirAutostart(valor); // liga/desliga no sistema
+              }}
             />
           </label>
         </section>

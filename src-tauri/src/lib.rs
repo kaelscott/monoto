@@ -16,6 +16,13 @@ pub fn run() {
         // plugin de armazenamento de configurações (Fase 2b).
         // Guarda settings.json; também é todo controlado pelo JavaScript.
         .plugin(tauri_plugin_store::Builder::new().build())
+        // plugins de atalho global e de autostart (Fase 2d).
+        // A lógica (qual atalho, ligar/desligar) fica no JavaScript.
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         // cria o ícone da bandeja quando o app inicia (Fase 2c)
         .setup(|app| {
             tray::criar_bandeja(app)?;
