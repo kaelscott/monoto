@@ -1,54 +1,118 @@
 /*
   global.css
-  Estilos "base" que valem para a página inteira: um reset simples,
-  a cor de fundo, a fonte e o color-scheme escuro (que deixa os
-  controles nativos — como input de hora e checkbox — escuros também).
+  Carrega o Tailwind e define o tema do app.
+
+  O bloco @theme é onde o Tailwind 4 aprende as nossas cores: escrever
+  "--color-painel" ali faz nascer a classe "bg-painel", "text-painel" e
+  companhia. Não existe tailwind.config.js na versão 4.
+
+  A paleta é toda em escala de cinza, sem cor de acento: o item
+  selecionado é marcado com um fundo mais claro.
 */
+@import "tailwindcss";
 
-/* reset simples: tira as margens padrão e usa um box-sizing previsível */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@theme {
+  /* fundos. A barra lateral é MAIS CLARA que a área de escrita, para o
+     texto da nota ficar sendo a parte mais escura e calma da tela. */
+  --color-fundo: #1a1a1a;   /* área de escrita (a mais escura) */
+  --color-painel: #262626;  /* barra lateral (mais clara) */
+  --color-elevado: #333333; /* item selecionado, dentro da barra */
 
-:root {
-  /* faz os controles nativos (hora, checkbox) virem no tema escuro */
-  color-scheme: dark;
-}
+  /* textos, do mais forte ao mais apagado */
+  --color-texto: #e8e8e8;
+  --color-texto-lista: #bdbdbd; /* notas na barra lateral */
+  --color-texto-2: #9a9a9a;
+  --color-texto-3: #5e5e5e;
 
-html,
-body,
-#root {
-  height: 100%;
-}
+  /* borda e hover: branco bem transparente, para não virar linha dura */
+  --color-borda: rgb(255 255 255 / 0.08);
+  --color-hover: rgb(255 255 255 / 0.04);
 
-body {
-  background: var(--fundo);
-  color: var(--texto);
-  font-family: var(--fonte-mono);
-  font-size: var(--tamanho-fonte);
-  -webkit-font-smoothing: antialiased; /* deixa o texto mais suave */
-}
+  /* Fonte do app: sem serifa, igual à do sistema. */
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
 
-/* barra de rolagem fininha e discreta */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--borda);
-  border-radius: var(--raio);
+  /* Usada só em trechos de código dentro da nota. */
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", ui-monospace, monospace;
+
+  /* largura máxima da coluna de escrita */
+  --spacing-texto: 45rem;
 }
 
-/* botões e campos herdam a fonte do app por padrão */
-button {
-  font-family: inherit;
-  font-size: inherit;
-  cursor: pointer;
+/* estilos base da página inteira */
+@layer base {
+  :root {
+    /* faz os controles nativos (hora, checkbox) virem no tema escuro */
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background: var(--color-fundo);
+    color: var(--color-texto);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* barra de rolagem fininha e discreta */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-borda);
+    border-radius: 4px;
+  }
+
+  button {
+    cursor: pointer;
+  }
 }
-input,
-textarea,
-select {
-  font-family: inherit;
+
+/*
+  O texto da nota é montado pelo TipTap, que cria as tags (h1, p, ul...)
+  por dentro, sem passar pelo nosso JSX. Como não dá para pôr classe do
+  Tailwind nelas, o estilo do texto fica aqui, em CSS normal.
+  ".ProseMirror" é a classe que o TipTap dá para a área de escrita.
+*/
+@layer base {
+  .ProseMirror {
+    outline: none;
+    line-height: 1.6;
+  }
+  .ProseMirror h1 {
+    font-size: 1.6rem;
+    margin: 0.6em 0 0.3em;
+  }
+  .ProseMirror h2 {
+    font-size: 1.3rem;
+    margin: 0.6em 0 0.3em;
+  }
+  .ProseMirror p {
+    margin: 0.3em 0;
+  }
+  .ProseMirror ul {
+    margin: 0.3em 0;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+  .ProseMirror code {
+    font-family: var(--font-mono);
+    background: var(--color-hover);
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+
+  /* texto cinza "Comece a escrever..." quando a nota está vazia */
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--color-texto-3);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
 }

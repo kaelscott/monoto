@@ -15,10 +15,10 @@ começa por um documento aqui.
 | [003](003-zustand.md) | Zustand em vez de Context API |
 | [004](004-sqlite.md) | SQLite em vez de localStorage |
 | [005](005-tiptap.md) | TipTap em vez de editor próprio |
-| [006](006-css-modules.md) | CSS Modules em vez de Tailwind |
 | [007](007-tags-em-vez-de-pastas.md) | Tags em vez de pastas |
 | [008](008-salvar-manual.md) | Salvar manual em vez de auto-save |
 | [015](015-regras-de-horario.md) | Manter as regras de horário |
+| [016](016-tailwind.md) | Tailwind em vez de CSS Modules |
 
 ## Recusados
 
@@ -30,3 +30,9 @@ começa por um documento aqui.
 | [012](012-sem-atalho-global.md) | Sem atalho global |
 | [013](013-sem-autostart.md) | Sem autostart |
 | [014](014-sem-toasts.md) | Sem toasts |
+
+## Substituídos
+
+| # | Decisão |
+|---|---|
+| [006](006-css-modules.md) | CSS Modules em vez de Tailwind — ver ADR-016 |

@@ -1,7 +1,23 @@
 /*
   util.js
-  Funções utilitárias pequenas, reaproveitadas em mais de um lugar.
+  Funções pequenas, usadas em mais de um lugar.
 */
+
+// Pergunta ao usuário e só apaga se ele confirmar. Serve para apagar
+// nota e para apagar regra: as duas perguntam antes, porque não dá
+// para desfazer.
+export async function confirmarEApagar(pergunta, apagar) {
+  const confirmou = window.confirm(pergunta);
+  if (!confirmou) {
+    return;
+  }
+
+  try {
+    await apagar();
+  } catch (erro) {
+    console.error("Falha ao apagar:", erro);
+  }
+}
 
 // Pega o TÍTULO de uma nota = a primeira linha de texto do conteúdo.
 // O conteúdo vem em HTML (do editor), então primeiro tiramos as tags
