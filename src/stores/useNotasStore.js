@@ -1,53 +1,112 @@
 import { create } from "zustand";
-import { inserirPasta, inserirNota } from "../banco";
+import { inserirNota, apagarNotaDB, salvarTagNota } from "../banco";
 
 /*
   useNotasStore.js
-  Store das PASTAS e NOTAS.
-  Agora os dados vêm do banco (SQLite): no boot a gente carrega tudo, e ao
-  criar pasta/nota a gente grava no banco e depois atualiza a tela.
+  Store das NOTAS: a lista, qual está aberta e qual tag filtra a lista.
+  Os dados vêm do banco (SQLite): carregamos tudo no boot e, ao criar,
+  apagar ou marcar com tag, gravamos no banco e atualizamos a tela.
 
-  Obs.: o conteúdo da nota é salvo no banco pelo próprio editor (com debounce),
-  então aqui "atualizarConteudo" mexe só na memória.
+  Obs.: o TEXTO da nota é gravado pelo Ctrl+S no editor (ADR-008), então
+  "atualizarConteudo" aqui mexe só na memória.
+
+  IMPORTANTE — por que criamos objetos e listas NOVAS:
+  o React só redesenha a tela quando percebe que algo mudou, e ele
+  percebe comparando se o objeto é OUTRO. Se mudássemos a nota por
+  dentro (nota.tag = "trabalho"), continuaria sendo o mesmo objeto e a
+  tela não atualizaria. Por isso montamos uma nota nova, campo a campo.
 */
 export const useNotasStore = create((set) => ({
-  pastas: [],
   notas: [],
-  pastaSelecionadaId: null, // null = filtro "todas"
   notaAtivaId: null,
+  tagSelecionada: null, // null = mostra todas
 
-  // chamado no boot, depois que o banco devolve os dados
-  carregar: (pastas, notas) =>
-    set({
-      pastas,
-      notas,
-      notaAtivaId: notas[0]?.id ?? null,
-    }),
+  // chamado no boot, depois que o banco devolve as notas
+  carregar: (notas) => {
+    let primeiraNota = null;
+    if (notas.length > 0) {
+      primeiraNota = notas[0].id;
+    }
+    set({ notas: notas, notaAtivaId: primeiraNota });
+  },
 
-  selecionarPasta: (id) => set({ pastaSelecionadaId: id }),
   selecionarNota: (id) => set({ notaAtivaId: id }),
+  selecionarTag: (tag) => set({ tagSelecionada: tag }),
 
-  // cria pasta: grava no banco, pega o id gerado e atualiza a tela
-  criarPasta: async (nome) => {
-    const id = await inserirPasta(nome);
-    set((estado) => ({ pastas: [...estado.pastas, { id, nome }] }));
-  },
-
-  // cria nota vazia na pasta selecionada (ou na 1ª pasta) e a deixa aberta.
-  // getState() lê o estado atual do store dentro de uma função assíncrona.
+  // Cria uma nota vazia e a deixa aberta, sem tag.
   criarNota: async () => {
-    const estado = useNotasStore.getState();
-    const pastaId = estado.pastaSelecionadaId ?? estado.pastas[0]?.id ?? null;
-    const id = await inserirNota(pastaId, "");
-    set((s) => ({
-      notas: [{ id, pastaId, conteudo: "" }, ...s.notas],
-      notaAtivaId: id,
-    }));
+    const id = await inserirNota("", "");
+    const nota = { id: id, conteudo: "", tag: "" };
+
+    set((estado) => {
+      // a nota nova entra no começo da lista
+      const lista = [nota];
+      for (const antiga of estado.notas) {
+        lista.push(antiga);
+      }
+      return { notas: lista, notaAtivaId: id };
+    });
   },
 
-  // atualiza só na memória (o salvamento no banco é feito pelo editor com debounce)
-  atualizarConteudo: (id, conteudo) =>
-    set((estado) => ({
-      notas: estado.notas.map((n) => (n.id === id ? { ...n, conteudo } : n)),
-    })),
+  // apaga a nota do banco e da tela
+  apagarNota: async (id) => {
+    await apagarNotaDB(id);
+
+    set((estado) => {
+      // monta a lista de novo, pulando a nota apagada
+      const lista = [];
+      for (const nota of estado.notas) {
+        if (nota.id !== id) {
+          lista.push(nota);
+        }
+      }
+
+      // se a nota apagada era a que estava aberta, abre a primeira que
+      // sobrou; se não sobrou nenhuma, não fica nenhuma aberta
+      let aberta = estado.notaAtivaId;
+      if (aberta === id) {
+        if (lista.length > 0) {
+          aberta = lista[0].id;
+        } else {
+          aberta = null;
+        }
+      }
+
+      return { notas: lista, notaAtivaId: aberta };
+    });
+  },
+
+  // troca a tag de uma nota. Diferente do texto, a tag é gravada na hora:
+  // é um campo curto, não tem por que esperar um Ctrl+S.
+  definirTag: async (id, tag) => {
+    await salvarTagNota(id, tag);
+
+    set((estado) => {
+      const lista = [];
+      for (const nota of estado.notas) {
+        if (nota.id === id) {
+          // a nota que mudou entra como um objeto NOVO, com a tag nova
+          lista.push({ id: nota.id, conteudo: nota.conteudo, tag: tag });
+        } else {
+          lista.push(nota);
+        }
+      }
+      return { notas: lista };
+    });
+  },
+
+  // atualiza só na memória (quem grava o texto no banco é o Ctrl+S)
+  atualizarConteudo: (id, conteudo) => {
+    set((estado) => {
+      const lista = [];
+      for (const nota of estado.notas) {
+        if (nota.id === id) {
+          lista.push({ id: nota.id, conteudo: conteudo, tag: nota.tag });
+        } else {
+          lista.push(nota);
+        }
+      }
+      return { notas: lista };
+    });
+  },
 }));

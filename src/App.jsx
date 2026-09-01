@@ -1,67 +1,43 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./componentes/Sidebar";
 import Editor from "./componentes/Editor";
-import CommandPalette from "./componentes/CommandPalette";
-import Configuracoes from "./componentes/Configuracoes";
-import Toasts from "./componentes/Toasts";
-import { useUiStore } from "./stores/useUiStore";
 import { useNotasStore } from "./stores/useNotasStore";
 import { iniciarBanco } from "./banco";
 import estilos from "./estilos/App.module.css";
 
 /*
   App.jsx
-  Monta o layout (sidebar + editor) e os "overlays" que ficam por cima
-  (command palette, configurações e toasts). Também cuida de duas coisas
-  globais: aplicar a aparência (fonte/opacidade) e o atalho Ctrl+K.
+  Monta o layout: barra lateral com a lista de notas + área do editor.
+  Também abre o banco quando o app inicia.
 */
 export default function App() {
-  const tamanhoFonte = useUiStore((e) => e.tamanhoFonte);
-  const opacidade = useUiStore((e) => e.opacidade);
-  const alternarPalette = useUiStore((e) => e.alternarPalette);
-  const adicionarToast = useUiStore((e) => e.adicionarToast);
   const carregar = useNotasStore((e) => e.carregar);
+  const [erro, setErro] = useState("");
 
-  // no boot: abre o banco, garante tabelas/dados e carrega pastas e notas
+  // no boot: abre o banco, garante as tabelas e carrega as notas
   useEffect(() => {
     iniciarBanco()
       .then(({ pastas, notas }) => carregar(pastas, notas))
-      .catch((erro) => {
-        console.error("Falha ao iniciar o banco:", erro);
-        adicionarToast("Erro ao abrir o banco: " + String(erro));
+      .catch((problema) => {
+        console.error("Falha ao iniciar o banco:", problema);
+        setErro("Não foi possível abrir o banco: " + String(problema));
       });
-  }, [carregar, adicionarToast]);
-
-  // aplica fonte e opacidade nas variáveis CSS sempre que mudarem
-  useEffect(() => {
-    const raiz = document.documentElement;
-    raiz.style.setProperty("--tamanho-fonte", `${tamanhoFonte}px`);
-    raiz.style.setProperty("--opacidade", String(opacidade));
-  }, [tamanhoFonte, opacidade]);
-
-  // atalho Ctrl+K (ou Cmd+K no Mac) abre/fecha o command palette
-  useEffect(() => {
-    function aoTeclar(e) {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        alternarPalette();
-      }
-    }
-    window.addEventListener("keydown", aoTeclar);
-    return () => window.removeEventListener("keydown", aoTeclar);
-  }, [alternarPalette]);
+  }, [carregar]);
 
   return (
     <div className={estilos.app}>
+      {/* erro do banco fica na tela até o usuário fechar (ADR-014) */}
+      {erro && (
+        <div className={estilos.erro}>
+          {erro}
+          <button onClick={() => setErro("")}>fechar</button>
+        </div>
+      )}
+
       <Sidebar />
       <main className={estilos.editor}>
         <Editor />
       </main>
-
-      {/* overlays: aparecem por cima quando abertos */}
-      <CommandPalette />
-      <Configuracoes />
-      <Toasts />
     </div>
   );
 }

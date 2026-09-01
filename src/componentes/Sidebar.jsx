@@ -1,191 +1,183 @@
-import { useState } from "react";
 import { useUiStore } from "../stores/useUiStore";
 import { useNotasStore } from "../stores/useNotasStore";
-import { tituloDaNota } from "../util";
-import estilos from "../estilos/Sidebar.module.css";
+import { tituloDaNota, confirmarEApagar } from "../util";
 
 /*
   Sidebar.jsx
-  Barra lateral esquerda. Contém o logo, o botão de recolher, a busca,
-  o "+ nova nota", a lista de pastas, a lista de notas e o botão de
-  configurações. As listas (pastas e notas) ficam neste mesmo arquivo
-  como pequenos componentes; se crescerem muito, viram arquivos próprios.
+  Barra lateral esquerda: logo, "+ nova nota", a lista de tags
+  (que filtra) e a lista de notas.
+  As duas listas ficam neste mesmo arquivo como pequenos componentes;
+  se crescerem muito, viram arquivos próprios.
 */
 
-// --- lista de pastas, com o campo inline para criar uma nova ---
-function ListaPastas() {
-  const pastas = useNotasStore((e) => e.pastas);
-  const pastaSelecionadaId = useNotasStore((e) => e.pastaSelecionadaId);
-  const selecionarPasta = useNotasStore((e) => e.selecionarPasta);
-  const criarPasta = useNotasStore((e) => e.criarPasta);
+// estilo de um item clicável das listas (tag ou nota).
+// O item selecionado é marcado só pelo fundo mais claro.
+const ITEM = "w-full truncate rounded px-2 py-1 text-left text-[13px] hover:bg-hover";
+const ITEM_ATIVO = "bg-elevado";
 
-  // controla o campo inline de "nova pasta"
-  const [criando, setCriando] = useState(false);
-  const [nome, setNome] = useState("");
+// --- lista de tags ---
 
-  function confirmar() {
-    if (nome.trim()) criarPasta(nome.trim());
-    setNome("");
-    setCriando(false);
-  }
-
-  function aoTeclar(e) {
-    if (e.key === "Enter") confirmar();
-    if (e.key === "Escape") {
-      setNome("");
-      setCriando(false);
-    }
+// Um botão de tag. Fica destacado quando é a tag que filtra a lista.
+function BotaoTag({ nome, escolhida, aoClicar }) {
+  let classe = ITEM + " text-texto-2";
+  if (escolhida) {
+    classe = ITEM + " " + ITEM_ATIVO + " text-texto";
   }
 
   return (
-    <div className={estilos.pastas}>
-      <div className={estilos.cabecalhoPastas}>
-        <span>PASTAS</span>
-        <button
-          className={estilos.maisPasta}
-          onClick={() => setCriando(true)}
-          title="Nova pasta"
-        >
-          +
-        </button>
-      </div>
+    <button className={classe} onClick={aoClicar}>
+      {nome}
+    </button>
+  );
+}
 
-      {criando && (
-        <input
-          className={estilos.entradaPasta}
-          placeholder="nome da pasta"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          onKeyDown={aoTeclar}
-          onBlur={confirmar}
-          autoFocus
+// Monta a lista de tags a partir das tags que as notas já têm.
+function ListaTags() {
+  const notas = useNotasStore((e) => e.notas);
+  const tagSelecionada = useNotasStore((e) => e.tagSelecionada);
+  const selecionarTag = useNotasStore((e) => e.selecionarTag);
+
+  // junta as tags das notas sem repetir, ignorando as notas sem tag
+  const tags = [];
+  for (const nota of notas) {
+    if (nota.tag !== "" && !tags.includes(nota.tag)) {
+      tags.push(nota.tag);
+    }
+  }
+  tags.sort();
+
+  return (
+    <div className="flex flex-col">
+      <span className="px-2 py-1 text-[11px] text-texto-3">TAGS</span>
+
+      {/* "todas" = nenhum filtro */}
+      <BotaoTag
+        nome="todas"
+        escolhida={tagSelecionada === null}
+        aoClicar={() => selecionarTag(null)}
+      />
+
+      {tags.map((tag) => (
+        <BotaoTag
+          key={tag}
+          nome={tag}
+          escolhida={tag === tagSelecionada}
+          aoClicar={() => selecionarTag(tag)}
         />
-      )}
-
-      {/* filtro "todas" (nenhuma pasta selecionada) */}
-      <button
-        className={
-          pastaSelecionadaId === null
-            ? `${estilos.pasta} ${estilos.pastaAtiva}`
-            : estilos.pasta
-        }
-        onClick={() => selecionarPasta(null)}
-      >
-        todas
-      </button>
-
-      {pastas.map((p) => (
-        <button
-          key={p.id}
-          className={
-            p.id === pastaSelecionadaId
-              ? `${estilos.pasta} ${estilos.pastaAtiva}`
-              : estilos.pasta
-          }
-          onClick={() => selecionarPasta(p.id)}
-        >
-          {p.nome}
-        </button>
       ))}
     </div>
   );
 }
 
-// --- lista de notas (filtrada pela pasta selecionada) ---
-function ListaNotas() {
-  const notas = useNotasStore((e) => e.notas);
-  const pastaSelecionadaId = useNotasStore((e) => e.pastaSelecionadaId);
-  const notaAtivaId = useNotasStore((e) => e.notaAtivaId);
-  const selecionarNota = useNotasStore((e) => e.selecionarNota);
+// --- lista de notas ---
 
-  // sem pasta selecionada (null) mostra todas; senão, só as da pasta
-  const visiveis =
-    pastaSelecionadaId === null
-      ? notas
-      : notas.filter((n) => n.pastaId === pastaSelecionadaId);
+// Uma linha da lista: o título abre a nota e o × apaga.
+// O × só aparece quando o mouse passa por cima (é o que "group" faz).
+function LinhaNota({ nota, aberta, aoAbrir, aoApagar }) {
+  let fundo = "hover:bg-hover";
+  if (aberta) {
+    fundo = ITEM_ATIVO;
+  }
 
   return (
-    <div className={estilos.notas}>
-      {visiveis.map((n) => (
-        <button
-          key={n.id}
-          className={
-            n.id === notaAtivaId
-              ? `${estilos.nota} ${estilos.notaAtiva}`
-              : estilos.nota
-          }
-          onClick={() => selecionarNota(n.id)}
-        >
-          {tituloDaNota(n.conteudo)}
-        </button>
+    <div className={"group flex items-center rounded " + fundo}>
+      <button
+        className="min-w-0 flex-1 truncate px-2 py-1 text-left text-[13px] text-texto-lista"
+        onClick={aoAbrir}
+      >
+        {tituloDaNota(nota.conteudo)}
+      </button>
+
+      <button
+        className="px-2 py-1 text-lg leading-none text-texto-3 opacity-0 hover:text-texto group-hover:opacity-100"
+        onClick={aoApagar}
+        title="Apagar nota"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+// A lista de notas, filtrada pela tag escolhida.
+function ListaNotas() {
+  const notas = useNotasStore((e) => e.notas);
+  const tagSelecionada = useNotasStore((e) => e.tagSelecionada);
+  const notaAtivaId = useNotasStore((e) => e.notaAtivaId);
+  const selecionarNota = useNotasStore((e) => e.selecionarNota);
+  const apagarNota = useNotasStore((e) => e.apagarNota);
+
+  // pergunta antes de apagar: é uma ação que não dá para desfazer
+  function confirmarApagar(nota) {
+    const titulo = tituloDaNota(nota.conteudo);
+    confirmarEApagar("Apagar a nota " + titulo + "?", () => apagarNota(nota.id));
+  }
+
+  // sem tag escolhida (null) mostra todas; senão, só as daquela tag
+  const visiveis = [];
+  for (const nota of notas) {
+    if (tagSelecionada === null || nota.tag === tagSelecionada) {
+      visiveis.push(nota);
+    }
+  }
+
+  if (visiveis.length === 0) {
+    return (
+      <span className="px-2 py-1 text-[12px] text-texto-3">Nenhuma nota</span>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 flex-col overflow-y-auto">
+      {visiveis.map((nota) => (
+        <LinhaNota
+          key={nota.id}
+          nota={nota}
+          aberta={nota.id === notaAtivaId}
+          aoAbrir={() => selecionarNota(nota.id)}
+          aoApagar={() => confirmarApagar(nota)}
+        />
       ))}
-      {visiveis.length === 0 && (
-        <span className={estilos.vazio}>Nenhuma nota</span>
-      )}
     </div>
   );
 }
 
 // --- a sidebar em si ---
 export default function Sidebar() {
-  const recolhida = useUiStore((e) => e.sidebarRecolhida);
-  const alternarSidebar = useUiStore((e) => e.alternarSidebar);
-  const abrirPalette = useUiStore((e) => e.abrirPalette);
-  const abrirConfig = useUiStore((e) => e.abrirConfig);
-  const adicionarToast = useUiStore((e) => e.adicionarToast);
+  const abrirRegras = useUiStore((e) => e.abrirRegras);
   const criarNota = useNotasStore((e) => e.criarNota);
 
   async function novaNota() {
     try {
       await criarNota();
-      adicionarToast("Nota criada");
     } catch (erro) {
       console.error("Falha ao criar nota:", erro);
-      adicionarToast("Erro ao criar nota: " + String(erro));
     }
   }
 
   return (
-    <aside
-      className={
-        recolhida ? `${estilos.sidebar} ${estilos.recolhida}` : estilos.sidebar
-      }
-    >
-      {/* topo: logo + botão de recolher */}
-      <div className={estilos.topo}>
-        {!recolhida && <span className={estilos.logo}>monoto</span>}
-        <button
-          className={estilos.recolher}
-          onClick={alternarSidebar}
-          title="Recolher/expandir"
-        >
-          ≡
-        </button>
-      </div>
+    <aside className="flex w-64 flex-col gap-1 border-r border-borda bg-painel p-2">
+      <span className="px-2 py-1 text-[13px] text-texto-2">monoto</span>
 
-      {/* o resto só aparece quando a sidebar está expandida */}
-      {!recolhida && (
-        <>
-          <button className={estilos.busca} onClick={abrirPalette}>
-            <span>buscar ação</span>
-            <span className={estilos.atalho}>Ctrl K</span>
-          </button>
+      <button
+        className="rounded px-2 py-1 text-left text-[13px] text-texto-2 hover:bg-hover hover:text-texto"
+        onClick={novaNota}
+      >
+        + nova nota
+      </button>
 
-          <button className={estilos.novaNota} onClick={novaNota}>
-            + nova nota
-          </button>
+      <ListaTags />
 
-          <ListaPastas />
+      <div className="my-1 border-t border-borda" />
 
-          <div className={estilos.divisoria} />
+      <ListaNotas />
 
-          <ListaNotas />
-
-          <button className={estilos.config} onClick={abrirConfig}>
-            configurações
-          </button>
-        </>
-      )}
+      <button
+        className="mt-auto rounded border border-borda px-2 py-1 text-left text-[13px] text-texto-2 hover:text-texto"
+        onClick={abrirRegras}
+      >
+        regras
+      </button>
     </aside>
   );
 }
