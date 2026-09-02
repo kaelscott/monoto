@@ -4,8 +4,6 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        // plugin que abre links/arquivos no programa padrão do sistema (vem do template)
-        .plugin(tauri_plugin_opener::init())
         // plugin de banco de dados SQLite (Fase 2a).
         // Tudo (criar tabelas, ler, gravar) é feito pelo JavaScript;
         // aqui apenas registramos o plugin para o front poder usá-lo.
