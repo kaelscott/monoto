@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { inserirNota, apagarNotaDB, salvarTagNota } from "../banco";
+import { escolherTag } from "../regrasHorario";
+import { useRegrasStore } from "./useRegrasStore";
 
 /*
   useNotasStore.js
@@ -33,10 +35,14 @@ export const useNotasStore = create((set) => ({
   selecionarNota: (id) => set({ notaAtivaId: id }),
   selecionarTag: (tag) => set({ tagSelecionada: tag }),
 
-  // Cria uma nota vazia e a deixa aberta, sem tag.
+  // Cria uma nota vazia e a deixa aberta. Se alguma regra de horário
+  // bate com o momento de agora, a nota já nasce com a tag dela.
   criarNota: async () => {
-    const id = await inserirNota("", "");
-    const nota = { id: id, conteudo: "", tag: "" };
+    const regras = useRegrasStore.getState().regras;
+    const tag = escolherTag(regras, new Date());
+
+    const id = await inserirNota("", tag);
+    const nota = { id: id, conteudo: "", tag: tag };
 
     set((estado) => {
       // a nota nova entra no começo da lista
