@@ -1,5 +1,6 @@
 import { useUiStore } from "../stores/useUiStore";
 import { useRegrasStore } from "../stores/useRegrasStore";
+import FormularioRegra from "./FormularioRegra";
 
 /*
   Regras.jsx
@@ -79,6 +80,10 @@ export default function Regras() {
         </div>
 
         <ListaRegras />
+
+        <div className="my-3 border-t border-borda" />
+
+        <FormularioRegra />
       </div>
     </div>
   );
