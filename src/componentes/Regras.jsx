@@ -1,13 +1,53 @@
 import { useUiStore } from "../stores/useUiStore";
+import { useRegrasStore } from "../stores/useRegrasStore";
 
 /*
   Regras.jsx
   Tela das regras de horário, que aparece por cima do app quando o
   usuário clica em "regras" na barra lateral.
 
-  Por enquanto só a casca: abre, fecha, e nada mais. A lista de regras
-  e o formulário de criar entram nos próximos passos.
+  Uma regra diz: nesses dias da semana, nessa faixa de horário, a nota
+  nova nasce com essa tag.
 */
+
+// --- lista das regras que já existem ---
+
+// Uma linha da lista, só mostrando os dados da regra por enquanto.
+function LinhaRegra({ regra }) {
+  return (
+    <div className="flex items-center gap-2 rounded border border-borda p-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-texto">{regra.tag}</span>
+        <span className="text-xs text-texto-2">
+          {regra.dias.join(", ")} · {regra.inicio} às {regra.fim}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// A lista inteira, ou um aviso quando ainda não há regra nenhuma.
+function ListaRegras() {
+  const regras = useRegrasStore((e) => e.regras);
+
+  if (regras.length === 0) {
+    return (
+      <p className="py-6 text-center text-xs text-texto-3">
+        Nenhuma regra ainda.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {regras.map((regra) => (
+        <LinhaRegra key={regra.id} regra={regra} />
+      ))}
+    </div>
+  );
+}
+
+// --- a tela em si ---
 export default function Regras() {
   const aberta = useUiStore((e) => e.regrasAbertas);
   const fechar = useUiStore((e) => e.fecharRegras);
@@ -37,6 +77,8 @@ export default function Regras() {
             ×
           </button>
         </div>
+
+        <ListaRegras />
       </div>
     </div>
   );
