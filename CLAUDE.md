@@ -1,6 +1,6 @@
 # Monoto
 
-App de notas desktop, offline, com estética de terminal.
+App de notas desktop, offline, escuro e minimalista.
 Escopo: criar, editar, listar e apagar notas — mais auto-tag por regras de horário.
 
 ## Nível do código
@@ -35,7 +35,7 @@ que explique o que mudou.
 
 ## Stack
 
-React + Vite · Tauri 2 · Zustand · CSS Modules · TipTap · SQLite
+React + Vite · Tauri 2 · Zustand · Tailwind · TipTap · SQLite
 
 ## Comandos
 
