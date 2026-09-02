@@ -1,5 +1,6 @@
 import { useUiStore } from "../stores/useUiStore";
 import { useRegrasStore } from "../stores/useRegrasStore";
+import { confirmarEApagar } from "../util";
 import FormularioRegra from "./FormularioRegra";
 
 /*
@@ -13,16 +14,54 @@ import FormularioRegra from "./FormularioRegra";
 
 // --- lista das regras que já existem ---
 
-// Uma linha da lista, só mostrando os dados da regra por enquanto.
+// Uma linha da lista, com os botões de ligar/desligar e de apagar.
+// Uma regra desligada continua na lista, só fica apagada e não vale.
 function LinhaRegra({ regra }) {
+  const alternarRegra = useRegrasStore((e) => e.alternarRegra);
+  const apagarRegra = useRegrasStore((e) => e.apagarRegra);
+
+  let opacidade = "";
+  let textoDoBotao = "ligada";
+  let tituloDoBotao = "Desligar regra";
+
+  if (!regra.ativa) {
+    opacidade = "opacity-40";
+    textoDoBotao = "desligada";
+    tituloDoBotao = "Ligar regra";
+  }
+
   return (
-    <div className="flex items-center gap-2 rounded border border-borda p-2">
+    <div
+      className={
+        "flex items-center gap-2 rounded border border-borda p-2 " + opacidade
+      }
+    >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-texto">{regra.tag}</span>
         <span className="text-xs text-texto-2">
           {regra.dias.join(", ")} · {regra.inicio} às {regra.fim}
         </span>
       </div>
+
+      <button
+        className="text-xs text-texto-3 hover:text-texto"
+        onClick={() => alternarRegra(regra.id)}
+        title={tituloDoBotao}
+      >
+        {textoDoBotao}
+      </button>
+
+      <button
+        className="px-1 text-lg leading-none text-texto-3 hover:text-texto"
+        onClick={() =>
+          confirmarEApagar("Apagar a regra " + regra.tag + "?", () =>
+            apagarRegra(regra.id)
+          )
+        }
+        title="Apagar regra"
+      >
+        ×
+      </button>
     </div>
   );
 }
