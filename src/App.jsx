@@ -1,27 +1,33 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./componentes/Sidebar";
 import Editor from "./componentes/Editor";
+import Regras from "./componentes/Regras";
 import { useNotasStore } from "./stores/useNotasStore";
+import { useRegrasStore } from "./stores/useRegrasStore";
 import { iniciarBanco } from "./banco";
 
 /*
   App.jsx
-  Monta o layout: barra lateral com a lista de notas + área do editor.
-  Também abre o banco quando o app inicia.
+  Monta o layout: barra lateral com a lista de notas + área do editor,
+  mais a tela de regras que abre por cima. Também abre o banco no início.
 */
 export default function App() {
   const carregar = useNotasStore((e) => e.carregar);
+  const carregarRegras = useRegrasStore((e) => e.carregarRegras);
   const [erro, setErro] = useState("");
 
-  // no boot: abre o banco, garante as tabelas e carrega as notas
+  // no boot: abre o banco, garante as tabelas e carrega notas e regras
   useEffect(() => {
     iniciarBanco()
-      .then(({ notas }) => carregar(notas))
+      .then(({ notas, regras }) => {
+        carregar(notas);
+        carregarRegras(regras);
+      })
       .catch((problema) => {
         console.error("Falha ao iniciar o banco:", problema);
         setErro("Não foi possível abrir o banco: " + String(problema));
       });
-  }, [carregar]);
+  }, [carregar, carregarRegras]);
 
   return (
     <div className="flex h-full">
@@ -43,6 +49,9 @@ export default function App() {
       <main className="flex-1 overflow-y-auto">
         <Editor />
       </main>
+
+      {/* aparece por cima quando aberta */}
+      <Regras />
     </div>
   );
 }
